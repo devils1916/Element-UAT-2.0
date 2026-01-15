@@ -1,0 +1,30 @@
+{
+  "name": "multiple-database-login",
+  "version": "1.0.0",
+  "description": "login in multiple database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "author": "AKSHAY",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "csv-stringify": "^6.6.0",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.19",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "expresss": "^0.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "mssql": "^11.0.1",
+    "nodemailer": "^7.0.12",
+    "nodemon": "^3.1.9",
+    "sequelize": "^6.37.5",
+    "tedious": "^18.6.1"
+  }
+}
