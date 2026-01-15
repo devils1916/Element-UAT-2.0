@@ -1,5 +1,3 @@
-const CustomError = require("../utils/errorHandler.util.js");
-const { response } = require("express");
 const {
   createNewSalaryHeadCode,
   createNewSalaryHeaddb,
@@ -27,11 +25,10 @@ const {
   createSalaryHead,
   getAllSlaryHead,
   createMonthalyEntitle
-
 } = require('../repository/salaryHeadMaster.repository.js');
 
 const getNewSalaryHeadCode = async (req, res) => {
-  try { 
+  try {
     const companyCode = req.auth.companyCode;
     const newSalaryHeadCode = await createNewSalaryHeadCode(companyCode);
     if (newSalaryHeadCode) {
@@ -46,11 +43,12 @@ const getNewSalaryHeadCode = async (req, res) => {
 const createNewSalaryHead = async (req, res) => {
   try {
     const data = req.body;
-    const saved = await createNewSalaryHeaddb(data);
+    const companyCode = req.auth.companyCode;
+    const saved = await createNewSalaryHeaddb(companyCode, data);
     if (saved === "existed") {
       return res.status(200).json({
         success: false,
-        message: "Salary Head Code must me Unique",
+        message: "Salary Head Code must me Unique this salary head code is already existed please use a diffrent code !",
       });
     }
     return res.status(200).json({
@@ -68,45 +66,79 @@ const createNewSalaryHead = async (req, res) => {
   }
 };
 
-const saveSalaryHeadAmoutGrade = async (req, res, next) => {
-  const { code, companyCode, grade, amount } = req.body;
-  try {
+// const saveSalaryHeadAmoutGrade = async (req, res) => {
+//   const { code, companyCode, grade, amount } = req.body;
+//   const newCompanyCode = req.auth.companyCode;
+//   try {
 
-    const result = await saveUpdate(code, companyCode, grade, amount);
+//     const result = await saveUpdate(code, companyCode, grade, amount, newCompanyCode);
 
-    if (result === 1) {
-      res.status(200).json({
-        success: true,
-        message: 'salary head details Updated successfully ',
-      })
-    } else if (result === " Salary head not found !   please send a valid salary Head ") {
-      res.status(402).json({
-        success: false,
-        message: ' Pelease select a valid salary head  ',
-        data: result
-      })
-    } else if (result) {
-      res.status(200).json({
-        success: true,
-        message: 'salary head details saved successfully ',
-        data: result
-      })
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Error in saving salary head details  '
-      })
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+//     if (result === 1) {
+//       res.status(200).json({
+//         success: true,
+//         message: 'salary head details Updated successfully ',
+//       })
+//     } else if (result === " Salary head not found !   please send a valid salary Head ") {
+//       res.status(402).json({
+//         success: false,
+//         message: ' Pelease select a valid salary head  ',
+//         data: result
+//       })
+//     } else if (result) {
+//       res.status(200).json({
+//         success: true,
+//         message: 'salary head details saved successfully ',
+//         data: result
+//       })
+//     } else {
+//       res.status(400).json({
+//         success: false,
+//         message: 'Error in saving salary head details  '
+//       })
+//     }
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// };
 
-const getMinimumWages = async (req, res, next) => {
+// const getSalaryAmount = async (req, res) => {
+
+//   try {
+//     const { companyCode, grade } = req.body;
+//     const newCompanyCode = req.auth.companyCode;
+
+//     if (!companyCode || !grade) {
+
+//       return res.status(400).json({ success: false, message: 'Company Code And Grade are required !' });
+//     }
+
+//     const result = await findSalaryByGrade(newCompanyCode, companyCode, grade);
+
+//     if (result.length > 0) {
+//       return res.status(200).json({
+//         success: true,
+//         message: 'Employee entitlement found successfully',
+//         data: result
+//       });
+//     } else {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Employee entitlement not found use a diffrent employee id '
+//       });
+//     }
+//   } catch (error) {
+//     console.error('Error in fetching salaryHead Amount by Grade:', error.message);
+//     res.status(500).json({ success: false, message: 'Internal server error' });
+//   }
+
+// };
+
+const getMinimumWages = async (req, res) => {
   const branchCode = req.body.branchCode;
+  const newCompanyCode = req.auth.companyCode;
   try {
-    const Wages = await getMinimumWagesByBranch(branchCode);
+    const Wages = await getMinimumWagesByBranch(newCompanyCode, branchCode);
     if (Wages.length > 0) {
       res.status(200).json({
         success: true,
@@ -127,51 +159,19 @@ const getMinimumWages = async (req, res, next) => {
       error: error.message
     });
   }
-
-};
-
-const getSalaryAmount = async (req, res, next) => {
-
-  try {
-    const { companyCode, grade } = req.body;
-
-    if (!companyCode || !grade) {
-
-      return res.status(400).json({ success: false, message: 'Company Code And Grade are required !' });
-    }
-
-    const result = await findSalaryByGrade(companyCode, grade);
-
-    if (result.length > 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'Employee entitlement found successfully',
-        data: result
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee entitlement not found use a diffrent employee id '
-      });
-    }
-  } catch (error) {
-    console.error('Error in fetching salaryHead Amount by Grade:', error.message);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-
 };
 
 const setReimbursment = async (req, res, next) => {
 
   try {
-
+    const newCompanyCode = req.auth.companyCode;
     const { empCode, reimbursmentType, EntitlementAmount, SNo } = req.body;
 
-    const result = await setReimbursmentdb(empCode, reimbursmentType, EntitlementAmount, SNo);
+    const result = await setReimbursmentdb(newCompanyCode, empCode, reimbursmentType, EntitlementAmount, SNo);
 
     if (result) {
 
-      response.status(200).json({
+      res.status(200).json({
         success: true,
         message: "Reimbursement saved successfully ",
         data: result
@@ -194,13 +194,14 @@ const setReimbursment = async (req, res, next) => {
 const getEntitlementByEmpId = async (req, res) => {
   try {
     const empid = req.params.empid;
+    const newCompanyCode = req.auth.companyCode;
 
     if (!empid) {
 
       return res.status(400).json({ success: false, message: 'Employee ID is required' });
     }
 
-    const entitlement = await findOneEntitle(empid);
+    const entitlement = await findOneEntitle(newCompanyCode, empid);
 
     if (entitlement.length > 0) {
       return res.status(200).json({
@@ -222,17 +223,15 @@ const getEntitlementByEmpId = async (req, res) => {
 
 const getEntitlementsByEmpIds = async (req, res) => {
   try {
-    const { empids } = req.body; // expect { "empids": ["E101", "E102", "E103"] }
-
+    const { empids } = req.body;
+    const newCompanyCode = req.auth.companyCode;
     if (!empids || !Array.isArray(empids) || empids.length === 0) {
       return res.status(400).json({
         success: false,
         message: "empids array is required in request body",
       });
     }
-
-    const entitlements = await findManyEntitle(empids);
-
+    const entitlements = await findManyEntitle(newCompanyCode, empids);
     if (entitlements.length > 0) {
       return res.status(200).json({
         success: true,
@@ -254,15 +253,14 @@ const getEntitlementsByEmpIds = async (req, res) => {
 const saveEntitlement = async (req, res) => {
   try {
     const entitlements = req.body;
-
+    const newCompanyCode = req.auth.companyCode;
     if (!Array.isArray(entitlements) || entitlements.length === 0) {
       return res.status(400).json({
         success: false,
         message: ' Invalid or empty data provided for entitlement ',
       });
     }
-
-    const result = await createEntitle(entitlements);
+    const result = await createEntitle(newCompanyCode, entitlements);
     if (result.status === 'error') {
       return res.status(400).json({ success: false, message: result.message });
     }
@@ -278,7 +276,8 @@ const saveEntitlement = async (req, res) => {
 
 const getSalaryHead = async (req, res, next) => {
   try {
-    const salHead = await getSalaryHeaddb();
+    const newCompanyCode = req.auth.companyCode;
+    const salHead = await getSalaryHeaddb(newCompanyCode);
     if (salHead.length > 0) {
       const headData = salHead.map(head => ({
         SalHeadCode: head.Code,
@@ -305,7 +304,8 @@ const getSalaryHead = async (req, res, next) => {
 
 const getFilteredSalaryHead = async (req, res, next) => {
   try {
-    const salHead = await getSalaryHeaddb();
+    const newCompanyCode = req.auth.companyCode;
+    const salHead = await getSalaryHeaddb(newCompanyCode);
     if (salHead.length > 0) {
       const headData = salHead.map(head => ({
         SalHeadCode: head.Code,
@@ -315,9 +315,6 @@ const getFilteredSalaryHead = async (req, res, next) => {
       }));
 
       const filteredData = headData.filter(item => item.SalHeadCode !== "SHC00001" && item.SalHeadCode !== "SHC00002" && item.SalHeadCode !== "SHC00005" && item.SalHeadCode !== "SHC00003" && item.SalHeadCode !== "SHC00004" && item.SalHeadCode !== "SHC00009" && item.SalHeadCode !== "SHC00012" && item.SalHeadCode !== "SHC00014" && item.SalHeadCode !== "SHC00020" && item.SalHeadCode !== "SHC00021" && item.SalHeadCode !== "SHC00029" && item.SalHeadCode !== "SHC00031" && item.SalHeadCode !== "SHC00032" && item.SalHeadCode !== "SHC00033" && item.SalHeadCode !== "SHC00034" && item.SalHeadCode !== "SHC00035" && item.SalHeadCode !== "SHC00013");
-
-
-
 
       res.status(200).json({
         success: true,
@@ -362,8 +359,9 @@ const getLocationsOfProfessionalTax = async (req, res, next) => {
 const saveGLDetails = async (req, res) => {
   try {
     const gldetails = req.body;
+    const newCompanyCode = req.auth.companyCode;
 
-    const result = await saveGLDetailsdb(gldetails);
+    const result = await saveGLDetailsdb(newCompanyCode,gldetails);
 
     if (result.status === 'error') {
       return res.status(400).json({ success: false, message: result.message });
@@ -375,59 +373,53 @@ const saveGLDetails = async (req, res) => {
   }
 };
 
-const calculateEmployeeSalarySlip = async (req, res) => {
-  try {
-    "july", "7", "2019", "BR00044", "Full Time";
-    const { Month, Year, BranchCode, EmpType } = req.body;
+// const calculateEmployeeSalarySlip = async (req, res) => {
+//   try {
+//     const { Month, Year, BranchCode, EmpType } = req.body;
 
-    function getMonthNumber(monthName) {
-      const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-
-      const index = months.findIndex(
-        (m) => m.toLowerCase() === monthName.toLowerCase()
-
-      );
-
-      return index !== -1 ? String(index + 1).padStart(2, "0") : null;
-
-    }
-
-    const MonthNo = getMonthNumber(Month);
-
-    const result = await calculateSalarySlip(
-      Month,
-      MonthNo,
-      Year,
-      BranchCode,
-      EmpType
-    );
-    res.status(200).json({
-      success: true,
-      message: "Salary slip calculated successfully",
-      data: result,
-    });
-  } catch (error) {
-    console.error("Error calculating salary slip:", error.message);
-    res.status(400).json({ success: false, message: "Internal server error" });
-  }
-};
+//     function getMonthNumber(monthName) {
+//       const months = [
+//         "January",
+//         "February",
+//         "March",
+//         "April",
+//         "May",
+//         "June",
+//         "July",
+//         "August",
+//         "September",
+//         "October",
+//         "November",
+//         "December",
+//       ];
+//       const index = months.findIndex(
+//         (m) => m.toLowerCase() === monthName.toLowerCase()
+//       );
+//       return index !== -1 ? String(index + 1).padStart(2, "0") : null;
+//     }
+//     const MonthNo = getMonthNumber(Month);
+//     const result = await calculateSalarySlip(
+//       Month,
+//       MonthNo,
+//       Year,
+//       BranchCode,
+//       EmpType
+//     );
+//     res.status(200).json({
+//       success: true,
+//       message: "Salary slip calculated successfully",
+//       data: result,
+//     });
+//   } catch (error) {
+//     console.error("Error calculating salary slip:", error.message);
+//     res.status(400).json({ success: false, message: "Internal server error" });
+//   }
+// };
 
 const saveSalarySlip = async (req, res) => {
   try {
     const salarySlipData = req.body;
+    const newCompanyCode = req.auth.companyCode;
     if (
       !salarySlipData.salaryData ||
       !Array.isArray(salarySlipData.salaryData) ||
@@ -439,7 +431,7 @@ const saveSalarySlip = async (req, res) => {
         message: "Invalid or empty data provided for salary slip",
       });
     }
-    const result = await saveSalarySlipdb(salarySlipData);
+    const result = await saveSalarySlipdb(newCompanyCode,salarySlipData);
 
     if (result.status === "error") {
       return res.status(400).json({ success: false, message: result.message });
@@ -457,6 +449,7 @@ const saveSalarySlip = async (req, res) => {
 const saveSalarySlipDetails = async (req, res) => {
   try {
     const salarySlipDetails = req.body;
+    const newCompanyCode = req.auth.companyCode;
     if (!salarySlipDetails || !Array.isArray(salarySlipDetails)) {
       return res.status(400).json({
         success: false,
@@ -464,7 +457,7 @@ const saveSalarySlipDetails = async (req, res) => {
       });
     }
     const salarySlipAvialable = await getSalarySlipInMaster(
-      salarySlipDetails[0].SalarySlipCode
+      newCompanyCode, salarySlipDetails[0].SalarySlipCode
     );
     if (!salarySlipAvialable) {
       return res.status(200).json({
@@ -472,8 +465,8 @@ const saveSalarySlipDetails = async (req, res) => {
         message:
           "There are no salary slip created in master for this code ! create this first ",
       });
-    }
-    const result = await saveSalarySlipDetailsdb(salarySlipDetails);
+    }s
+    const result = await saveSalarySlipDetailsdb(newCompanyCode, salarySlipDetails);
     if (result.status === "error") {
       return res.status(400).json({ success: false, message: result.message });
     }
@@ -489,45 +482,89 @@ const saveSalarySlipDetails = async (req, res) => {
   }
 };
 
+// const saveMonthlyEntitlementEntry = async (req, res) => {
+//   try {
+//     const entitlements = req.body;
+//     const newCompanyCode = req.auth.companyCode;
+//     if (!Array.isArray(entitlements) || entitlements.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: " Invalid or empty entitlement data ",
+//       });
+//     }
+//     const result = await createMonthalyEntitle(newCompanyCode, entitlements);
+//     if (result.status === "error") {
+//       return res.status(400).json({ success: false, message: result.message });
+//     } else if (result.status === "success") {
+//       if (result.existingMonthalyEntitlementEntry.length > 0 && result.existingSalarySlip.length > 0) {
+//         return res.status(200).json({
+//           success: true,
+//           message: `${result.message} ! There are existing monthly entitlement entries and salary slips for some employees. Please review the existing entries.`,
+//           data: {
+//             ExistingInEntitlement: result.existingMonthalyEntitlementEntry,
+//             ExistingInSalarySlip: result.existingSalarySlip
+//           }
+//         });
+//       } else {
+//         return res.status(200).json({
+//           success: true,
+//           message: result.message,
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({ success: false, message: result.message });
+//     }
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// };
+
 const saveMonthlyEntitlementEntry = async (req, res) => {
   try {
     const entitlements = req.body;
+    const companyCode = req.auth.companyCode;
+
     if (!Array.isArray(entitlements) || entitlements.length === 0) {
       return res.status(400).json({
         success: false,
-        message: " Invalid or empty data provided for entitlement ",
+        message: "Invalid or empty entitlement data",
       });
     }
-    const result = await createMonthalyEntitle(entitlements);
+
+    const result = await createMonthalyEntitle(
+      companyCode,
+      entitlements
+    );
+
     if (result.status === "error") {
-      return res.status(400).json({ success: false, message: result.message });
-    } else if (result.status === "success") {
-      if (result.existingMonthalyEntitlementEntry.length > 0 && result.existingSalarySlip.length > 0) {
-        return res.status(200).json({
-          success: true,
-          message: `${result.message} ! There are existing monthly entitlement entries and salary slips for some employees. Please review the existing entries.`,
-          data: {
-            ExistingInEntitlement: result.existingMonthalyEntitlementEntry,
-            ExistingInSalarySlip: result.existingSalarySlip
-          }
-        });
-      } else {
-        return res.status(200).json({
-          success: true,
-          message: result.message,
-        });
-      }
-    } else {
-      return res.status(400).json({ success: false, message: result.message });
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        ExistingInEntitlement: result.existingMonthlyEntitlement,
+        ExistingInSalarySlip: result.existingSalarySlip,
+      },
+    });
   } catch (error) {
-    res.status(500).json({
+    console.error("Controller Error:", error);
+    return res.status(500).json({
       success: false,
       message: "Internal server error",
       error: error.message,
     });
   }
 };
+
 
 const getEmployeesForIncomeTaxComputation = async (req, res) => {
   try {
@@ -821,8 +858,8 @@ const GetAllSalaryHeadCntr = async (req, res) => {
 module.exports = {
   getNewSalaryHeadCode,
   createNewSalaryHead,
-  saveSalaryHeadAmoutGrade,
-  getSalaryAmount,
+  // saveSalaryHeadAmoutGrade,
+  // getSalaryAmount,
   getMinimumWages,
   setReimbursment,
   getEntitlementByEmpId,
@@ -831,7 +868,7 @@ module.exports = {
   getFilteredSalaryHead,
   getLocationsOfProfessionalTax,
   saveGLDetails,
-  calculateEmployeeSalarySlip,
+  // calculateEmployeeSalarySlip,
   saveSalarySlip,
   saveSalarySlipDetails,
   getEmployeesForIncomeTaxComputation,

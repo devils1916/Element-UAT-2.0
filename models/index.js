@@ -7,6 +7,16 @@ const GradeModel = require("./../models/Grade.model")
 const CountryModel = require("./../models/countryMaster.model")
 const ShiftModel = require("./../models/ShiftMaster.model")
 BranchCommercialHeadModel = require("./../models/BranchCommercialHead.Model")
+const employeeEntitlementModel = require("./../models/employeeEntitlement.model")
+const SalaryHeadMasterNewModel = require("./../models/SalaryHeadMasterNew.model")
+// const salaryHeadMaster2 = require("./../models/salaryHeadMaster.model");
+const reimbursementModel = require("./../models/employeeReimbursement.model");
+const glDetailsModel = require("./../models/glDetails.model");
+const salarySlipModel = require("./../models/salarySlip.model");
+const salarySlipEmployeeModel = require("./../models/salarySlipEmployee.model");
+const salarySlipEntitlementDetailsModel = require("./../models/SalarySlipEntitlementDetails.model");
+const MonthlyEntitlementEntry = require("./../models/monthlyEntitlementEntry.model");
+
 module.exports = (sequelize, DataTypes) => {
   EmployeeModel(sequelize, DataTypes);
   PHRMBranchWiseModel(sequelize, DataTypes);
@@ -17,4 +27,13 @@ module.exports = (sequelize, DataTypes) => {
   CountryModel(sequelize, DataTypes);
   ShiftModel(sequelize, DataTypes);
   BranchCommercialHeadModel(sequelize, DataTypes);
+  employeeEntitlementModel(sequelize, DataTypes);
+  SalaryHeadMasterNewModel(sequelize, DataTypes);
+  // salaryHeadMaster2(sequelize, DataTypes);
+  reimbursementModel(sequelize, DataTypes);
+  glDetailsModel(sequelize, DataTypes);
+  salarySlipModel(sequelize, DataTypes);
+  salarySlipEmployeeModel(sequelize, DataTypes);
+  salarySlipEntitlementDetailsModel(sequelize, DataTypes);
+  MonthlyEntitlementEntry(sequelize, DataTypes);
 };

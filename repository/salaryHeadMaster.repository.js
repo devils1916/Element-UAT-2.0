@@ -1,15 +1,9 @@
 const { Sequelize, InvalidConnectionError } = require('sequelize');
-const SHM = require("../models/salaryHeadMaster.model.js");
-const empRemburs = require("../models/employeeReimbursement.model.js");
-const Entitlement = require("../models/employeeEntitlement.model.js");
 const ProfessionalTaxMaster = require("../models/professionalTaxMaster.model.js");
 const gldetail = require("../models/glDetails.model.js");
 const CustomError = require("../utils/errorHandler.util.js");
 const { executeQuery } = require('../utils/dbhelper.util.js');
 const { element } = require('../config/db.js');
-const salaryslipMaster = require("../models/salarySlip.model.js")
-const salarySlipEmployee = require("../models/salarySlipEmployee.model.js");
-const salarySlipEntitlementDetails = require("../models/SalarySlipEntitlementDetails.model.js");
 const BranchesMinimumWages = require("../models/BranchesMinimumWages.model.js")
 const { Op } = require('sequelize');
 const calculateCTCBreakup = require('../utils/calculateCTCBreakup.util.js');
@@ -17,29 +11,26 @@ const SalaryHeadMaster = require('../models/SalaryHeadMasterNew.model');
 const { EmployeeSalary: EmployeeAssociateSalary, SalaryHeadMaster: SalaryAssociateHeadMaster } = require("../models/EmpEntitlementSalaryHead.associate.model.js");
 const { calculateExactCTC } = require('../utils/calculateAttendance2.js');
 const LWF = require('../models/LWFMaster.model.js');
-const SalarySlipEntitlementDetails = require('../models/SalarySlipEntitlementDetails.model.js');
-const MonthlyEntitlementEntry = require('../models/monthlyEntitlementEntry.model.js');
-const {getDatabaseNameByCompanyCode} = require("./element.repository.js");
+const { getDatabaseNameByCompanyCode } = require("./element.repository.js");
 const { getSequelize } = require("../config/sequelizeManager.js");
 const getD = require('../models/employeeMaster.model.js');
 
 const createNewSalaryHeadCode = async (companyCode) => {
   try {
-    console.log('compnany', companyCode);
-        const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-        if (!companyDetails || companyDetails.length === 0) {
-            throw new CustomError(404, "Company not found");
-        }
-        const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-       // const Country = sequelize.models.Country
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const SalaryHeadMaster = sequelize.models.SalaryHeadMaster;
 
-    const nextCode = "SHC00001";
+    let nextCode = "SHC00001";
     const lastRecord = await SalaryHeadMaster.findOne({
       order: [["SalaryID", "DESC"]],
-    });
+    },);
     if (lastRecord && lastRecord.Code) {
       const lastCode = lastRecord.Code.trim();
-      const lastNumber = parseInt(lastCode.substring(3)); 
+      const lastNumber = parseInt(lastCode.substring(3));
       if (!isNaN(lastNumber)) {
         nextCode = "SHC" + (lastNumber + 1).toString().padStart(5, "0");
       }
@@ -50,136 +41,157 @@ const createNewSalaryHeadCode = async (companyCode) => {
   }
 };
 
-const createNewSalaryHeaddb = async (body) => {
-  try{
+const createNewSalaryHeaddb = async (companyCode, body) => {
+  try {
     const Code = body.Code;
-    const existing = await SalaryHeadMaster.findOne({where : {Code}});
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const SalaryHeadMaster = sequelize.models.SalaryHeadMaster;
+
+    const existing = await SalaryHeadMaster.findOne({ where: { Code } });
     if (existing) return "existed"
     return await SalaryHeadMaster.create(body);
-  }catch(error){
+  } catch (error) {
     throw error;
   }
 };
 
-const saveUpdate = async (code, companyCode, grade, amount) => {
+// const saveUpdate = async (code, companyCode, grade, amount, newCompanyCode) => {
 
+//   try {
+
+//     const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+//     if (!companyDetails || companyDetails.length === 0) {
+//       throw new CustomError(404, "Company not found");
+//     }
+//     const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+//     const SHM = sequelize.models.salaryHeadMaster2;
+
+//     const salhead = await SHM.findOne({ where: { Code: code, Grade: grade, CompanyCode: companyCode } });
+
+//     if (salhead) {
+//       const result = await SHM.update({ Amount: amount }, { where: { Code: code, CompanyCode: companyCode, Grade: grade } });
+//       return result[0] === 1 ? 1 : false;
+//     } else {
+//       const headDetails = await executeQuery(`SELECT * FROM SalaryHeadMaster WHERE Code = '${code}'`);
+
+//       if (!headDetails || headDetails.length === 0) {
+//         return " Salary head not found !   please send a valid salary Head ";
+//       }
+
+//       return newHead = await SHM.create({
+//         Code: code,
+//         Head: headDetails[0].Head,
+//         Description: headDetails[0].Description,
+//         EarningDeduction: headDetails[0].EarningDeduction,
+//         CompanyCode: companyCode,
+//         Amount: amount,
+//         Grade: grade
+//       });
+//     }
+
+//   } catch (error) {
+//     throw new Error('Error in saving salaryhead details : ' + error.message);
+//   }
+// };
+
+// const findSalaryByGrade = async (newCompanyCode, companyCode, grade) => {
+//   try {
+//     const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+//     if (!companyDetails || companyDetails.length === 0) {
+//       throw new CustomError(404, "Company not found");
+//     }
+//     const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+//     const SHM = sequelize.models.salaryHeadMaster2;
+//     return await SHM.findAll({ where: { CompanyCode: companyCode, Grade: grade } });
+
+//   } catch (error) {
+//     throw new Error('Error in fetching Salary by Grade : ' + error.message);
+//   }
+// };
+
+const getMinimumWagesByBranch = async (newCompanyCode, branchCode) => {
   try {
-    const salhead = await SHM.findOne({ where: { Code: code, Grade: grade, CompanyCode: companyCode } });
-
-    if (salhead) {
-      const result = await SHM.update({ Amount: amount }, { where: { Code: code, CompanyCode: companyCode, Grade: grade } });
-      return result[0] === 1 ? 1 : false;
-    } else {
-      const headDetails = await executeQuery(`SELECT * FROM SalaryHeadMaster WHERE Code = '${code}'`);
-
-      if (!headDetails || headDetails.length === 0) {
-        return " Salary head not found !   please send a valid salary Head ";
-      }
-
-      return newHead = await SHM.create({
-        Code: code,
-        Head: headDetails[0].Head,
-        Description: headDetails[0].Description,
-        EarningDeduction: headDetails[0].EarningDeduction,
-        CompanyCode: companyCode,
-        Amount: amount,
-        Grade: grade
-      });
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
     }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
 
-  } catch (error) {
-    throw new Error('Error in saving salaryhead details : ' + error.message);
-  }
-};
-
-const findSalaryByGrade = async (companyCode, grade) => {
-  try {
-    return await SHM.findAll({ where: { CompanyCode: companyCode, Grade: grade } });
-
-  } catch (error) {
-    throw new Error('Error in fetching Salary by Grade : ' + error.message);
-  }
-};
-
-const getMinimumWagesByBranch = async (branchCode) => {
-  try {
-    return await executeQuery(`SELECT * FROM BranchesMinimumWages WHERE BranchCode = '${branchCode}'`);
+    return await sequelize.query(`SELECT * FROM BranchesMinimumWages WHERE BranchCode = '${branchCode}'`,  { type: sequelize.QueryTypes.SELECT });
   } catch (error) {
     throw new Error('Error fetching MinimumWages : ' + error.message);
   }
 };
 
-const setReimbursmentdb = async (empCode, reimbursmentType, EntitlementAmount, SNo) => {
-
+const setReimbursmentdb = async (newCompanyCode, empCode, reimbursmentType, EntitlementAmount, SNo) => {
   try {
-
-    const result1 = await empRemburs.findAll({ where: { EmpCode: empCode, ReimbursmentType: reimbursmentType } });
-
-    if (result1.length > 0) {
-
-      return await empRemburs.update({ EntitlementAmount: EntitlementAmount, IsEntitle: true }, { Where: { EmpCode: empCode, ReimbursmentType: reimbursmentType } })
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
     }
-    const result = await empRemburs.create({
-      EmpCode: empCode,
-      ReimbursmentType: reimbursmentType,
-      IsEntitle: false,
-      EntitlementAmount: EntitlementAmount,
-      SNo: 1
-    })
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const empRemburs = sequelize.models.EmployeeReimbursement;
 
-
+    const result1 = await empRemburs.findAll({ where: { EmpCode: empCode, ReimbursementType: reimbursmentType } });
+    if (result1.length > 0) {
+      return await empRemburs.update({ EntitlementAmount: EntitlementAmount, IsEntitle: true }, { Where: { EmpCode: empCode, ReimbursementType: reimbursmentType } })
+    } else {
+      return await empRemburs.create({
+        EmpCode: empCode,
+        ReimbursementType: reimbursmentType,
+        IsEntitle: false,
+        EntitlementAmount: EntitlementAmount,
+        SNo: 1
+      })
+    }
   } catch (error) {
-
     throw new Error('Error in saving reimbursement : ' + error.message);
-
   }
 }
 
-const findOneEntitle = async (empid) => {
-
-  console.log(`Type of empid: ${typeof empid}`);
-
-  if (!empid) throw new Error('Employee ID is required');
-
-  console.log(`Fetching entitlement for empid: ${empid}`);
-
-  const query = `SELECT * FROM EmployeeEntitlement WHERE EmpCode = '${empid}'`;
-
-  const result = await executeQuery(query);
-
-  console.log(`Entitlement length: ${result.length}`);
-
-  return result;
-
-};
-
-const findManyEntitle = async (empids) => {
-  if (!empids || empids.length === 0) {
-    throw new Error("Employee IDs are required");
-  }
-
-  console.log(`Fetching entitlements for empids: ${empids.join(", ")}`);
-
-  const formattedIds = empids.map(id => `'${id}'`).join(",");
-
-  const query = `SELECT * FROM EmployeeEntitlement WHERE EmpCode IN (${formattedIds})`;
-
-  const result = await executeQuery(query);
-
-  console.log(`Entitlements found: ${result.length}`);
-
-  return result;
-};
-
-const getSalaryHeaddb = async (empid) => {
+const findOneEntitle = async (newCompanyCode, empid) => {
   try {
-    return await executeQuery(`SELECT * FROM SalaryHeadMaster`);
+    if (!empid) throw new Error('Employee ID is required');
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+    const result = await sequelize.query(`SELECT * FROM EmployeeEntitlement WHERE EmpCode = '${empid}'`,  { type: sequelize.QueryTypes.SELECT });
+
+    return result;
+
   } catch (error) {
-    throw new Error('Error in fetching SalaryHeadMaster ' + error.message);
+    throw new Error('Error in fetching Employee Entitlement : ' + error.message);
   }
 };
 
-const createEntitle = async (entitlements) => {
+const findManyEntitle = async (newCompanyCode, empids) => {
+  try {
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+    if (!empids || empids.length === 0) {
+      throw new Error("Employee IDs are required");
+    }
+
+    const formattedIds = empids.map(id => `'${id}'`).join(",");
+    return await sequelize.query(`SELECT * FROM EmployeeEntitlement WHERE EmpCode IN (${formattedIds})`, { type: sequelize.QueryTypes.SELECT });
+
+  } catch (error) {
+    throw new Error('Error in fetching Employee Entitlement : ' + error.message);
+  }
+};
+
+const createEntitle = async (newCompanyCode, entitlements) => {
   try {
     const empCodes = entitlements.map(e => e.EmpCode);
     const uniqueEmpCodes = [...new Set(empCodes)];
@@ -193,7 +205,13 @@ const createEntitle = async (entitlements) => {
 
     const empCode = entitlements[0]?.EmpCode;
 
-    const employee = await executeQuery(`SELECT * FROM EmployeeMaster WHERE EmpID = '${empCode}'`);
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+    const employee = await sequelize.query(`SELECT * FROM EmployeeMaster WHERE EmpID = '${empCode}'`, { type: sequelize.QueryTypes.SELECT });
 
     if (!employee || employee.length === 0) {
       return {
@@ -202,12 +220,13 @@ const createEntitle = async (entitlements) => {
       };
     }
 
-    const existingEntitlements = await Entitlement.findAll({ where: { EmpCode: empCode } });
+    const employeeEntitlementModel = sequelize.models.EmployeeEntitle;
+
+    const existingEntitlements = await employeeEntitlementModel.findAll({ where: { EmpCode: empCode } });
 
     let snoCounter = existingEntitlements.length === 0 ? 1 : existingEntitlements.length + 1;
 
     const existingMap = {};
-
     existingEntitlements.forEach(e => {
       existingMap[e.SalHead] = e;
     });
@@ -216,7 +235,7 @@ const createEntitle = async (entitlements) => {
     for (const entitle of entitlements) {
       const { SalHead } = entitle;
       if (!salaryHeadMap[SalHead]) {
-        const head = await executeQuery(`SELECT * FROM SalaryHeadMaster WHERE Code = '${SalHead}'`);
+        const head = await sequelize.query(`SELECT * FROM SalaryHeadMaster WHERE Code = '${SalHead}'`, { type: sequelize.QueryTypes.SELECT });
         if (!head || head.length === 0) {
 
           return {
@@ -225,17 +244,15 @@ const createEntitle = async (entitlements) => {
           };
 
         }
-
         salaryHeadMap[SalHead] = head[0];
       }
     }
-
     for (const entitle of entitlements) {
       const { EmpCode, SalHead, FixedAmount } = entitle;
       const salHeadData = salaryHeadMap[SalHead];
 
       if (existingMap[SalHead]) {
-        await Entitlement.update(
+        await employeeEntitlementModel.update(
           {
             isEditable: true,
             FixedAmount,
@@ -245,7 +262,7 @@ const createEntitle = async (entitlements) => {
           { where: { EmpCode, SalHead } }
         );
       } else {
-        await Entitlement.create({
+        await employeeEntitlementModel.create({
           EmpCode,
           sno: snoCounter++,
           SalHead,
@@ -263,27 +280,47 @@ const createEntitle = async (entitlements) => {
     }
     return {
       status: 'success',
-      message: "Employee Entitlement Saved/Updated Successfully for " + employee[0].Name
+      message: "Employee Entitlement Saved/Updated Successfully for " + employee[0]?.Name
     };
 
   } catch (error) {
-
+    console.error("Error in createEntitle:", error);
     throw new Error("Error in saving Employee Entitlement: " + error.message);
+  }
+};
+
+const getSalaryHeaddb = async (newCompanyCode) => {
+  try {
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+    return await sequelize.query(`SELECT * FROM SalaryHeadMaster`,  { type: sequelize.QueryTypes.SELECT });
+  } catch (error) {
+    throw new Error('Error in fetching SalaryHeadMaster ' + error.message);
   }
 };
 
 const getLocationsOfProfessionalTaxdb = async () => {
   try {
     return await ProfessionalTaxMaster.findAll();
-
   } catch (error) {
     console.error('Error fetching locations:', error);
     throw new CustomError('Error fetching locations', 500);
   }
 };
 
-const saveGLDetailsdb = async (gldetails) => {
+const saveGLDetailsdb = async (newCompanyCode, gldetails) => {
   try {
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const gldetail = sequelize.models.EmployeeGlDetails;
+
     for (const details of gldetails) {
       const { EmpCode, SalHead } = details;
 
@@ -309,152 +346,49 @@ const saveGLDetailsdb = async (gldetails) => {
   }
 };
 
-const calculateSalarySlip = async (
-  Month,
-  MonthNo,
-  Year,
-  BranchCode,
-  EmpType
-) => {
-  try {
-    return await element.query(
-      `EXEC Proc_EmployeeSalarySlip :Month, :MonthNo, :Year, :BranchCode, :EmpType`,
-      {
-        replacements: {
-          Month,
-          MonthNo: parseInt(MonthNo),
-          Year,
-          BranchCode,
-          EmpType,
-        },
-        type: element.QueryTypes.SELECT,
-      }
-    );
+// const calculateSalarySlip = async (
+//   Month,
+//   MonthNo,
+//   Year,
+//   BranchCode,
+//   EmpType
+// ) => {
+//   try {
+//     return await element.query(
+//       `EXEC Proc_EmployeeSalarySlip :Month, :MonthNo, :Year, :BranchCode, :EmpType`,
+//       {
+//         replacements: {
+//           Month,
+//           MonthNo: parseInt(MonthNo),
+//           Year,
+//           BranchCode,
+//           EmpType,
+//         },
+//         type: element.QueryTypes.SELECT,
+//       }
+//     );
 
-  } catch (error) {
-    console.error("Error calculating salary slip:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
-  }
-};
+//   } catch (error) {
+//     console.error("Error calculating salary slip:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal server error" });
+//   }
+// };
 
-const createMonthalyEntitle = async (entitlements) => {
-
-  try {
-    if (!Array.isArray(entitlements) || entitlements.length === 0) {
-      return {
-        status: "error",
-        message: "Entitlements array is empty or invalid",
-      };
-    }
-
-    const branchCodes = [...new Set(entitlements.map(e => e.BranchCode))];
-    if (branchCodes.length > 1) {
-      return {
-        status: "error",
-        message: "All entitlements must belong to the same BranchCode.",
-      };
-    }
-
-    const salarySlipCode = await salaryslipMaster.findOne({
-      where: {
-        months: entitlements[0].Month,
-        years: entitlements[0].Year,
-        branchCode: entitlements[0].BranchCode,
-      },
-      attributes: ['SalarySlipCode'],
-    });
-    if (!salarySlipCode) {
-      return {
-        status: "error",
-        message: "No salary slip found " + entitlements[0].Month + "/" + entitlements[0].Year + " for " + entitlements[0].BranchCode,
-      };
-    };
-
-    const existingMonthlyList = [];
-    const existingSlipList = [];
-
-    for (const [index, e] of entitlements.entries()) {
-      const {
-        EmpName,
-        EmpID,
-        Entitle,
-        BranchCode,
-        Month,
-        Year,
-        SalaryHeadCode,
-        SalaryHead,
-      } = e;
-
-      const existingMonthly = await MonthlyEntitlementEntry.findOne({
-        where: { EmpID, Month, Year, SalaryHeadCode },
-      });
-
-      if (!existingMonthly) {
-        await MonthlyEntitlementEntry.create({
-          BranchCode,
-          Month,
-          Year,
-          CreatedBy: "Admin",
-          EmpID,
-          EmpName,
-          SalaryHeadCode,
-          SalaryHead,
-          Entitle,
-        });
-      } else {
-        existingMonthlyList.push({
-          EmpID,
-          Month,
-          Year,
-          SalaryHeadCode,
-          SalaryHead
-        });
-      }
-      const existingSlip = await SalarySlipEntitlementDetails.findOne({
-        where: { SalarySlipCode: salarySlipCode.SalarySlipCode, EmpCode: EmpID, HeadCode: SalaryHeadCode },
-      });
-
-      if (!existingSlip) {
-        const EarnDedu = await SHM.findOne({ where: { Code: SalaryHeadCode }, attributes: ['EarningDeduction'], });
-        await SalarySlipEntitlementDetails.create({
-          SalarySlipCode: salarySlipCode ? salarySlipCode.SalarySlipCode : "Unknown",
-          HeadCode: SalaryHeadCode,
-          Name: SalaryHead,
-          Rate: Entitle,
-          Amount: Entitle,
-          EmpCode: EmpID,
-          EarnDedu: EarnDedu ? EarnDedu.EarningDeduction : "Earning",
-          SNo: index + 1,
-        });
-      } else {
-        existingSlipList.push({
-          EmpCode: EmpID,
-          HeadCode: SalaryHeadCode,
-          Name: SalaryHead
-        });
-      }
-    }
-    return {
-      status: "success",
-      message: "Monthly entitlements processed successfully.",
-      existingMonthalyEntitlementEntry: existingMonthlyList,
-      existingSalarySlip: existingSlipList
-    };
-  } catch (error) {
-    console.error("Error in createMonthalyEntitle:", error);
-    return {
-      status: "error",
-      message: "Error while saving entitlements: " + error.message,
-    };
-  }
-};
-
-const saveSalarySlipdb = async (salarySlipData) => {
+const saveSalarySlipdb = async ( newCompanyCode, salarySlipData) => {
   try {
     const salaryData = salarySlipData.salaryData;
     const salaryMaster = salarySlipData.salaryMaster;
+
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const salaryslipMaster = sequelize.models.SalarySlip;
+    const salarySlipEmployee = sequelize.models.SalarySlipEmployee;
+
     const existingSlip = await salaryslipMaster.findOne({
       where: {
         Months: salaryMaster.Months,
@@ -507,8 +441,14 @@ const saveSalarySlipdb = async (salarySlipData) => {
   }
 };
 
-const getSalarySlipInMaster = async (salarySlipCode) => {
+const getSalarySlipInMaster = async (newCompanyCode, salarySlipCode) => {
   try {
+    const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const salaryslipMaster = sequelize.models.SalarySlip;
     return await salaryslipMaster.findOne({
       where: { SalarySlipCode: salarySlipCode },
     });
@@ -521,7 +461,7 @@ const getSalarySlipInMaster = async (salarySlipCode) => {
   }
 };
 
-async function saveSalarySlipDetailsdb(salarySlipDetails) {
+async function saveSalarySlipDetailsdb(newCompanyCode, salarySlipDetails) {
   const created = [];
   const alreadyExist = [];
   let SNo = 1;
@@ -534,6 +474,13 @@ async function saveSalarySlipDetailsdb(salarySlipDetails) {
   const { SalarySlipCode } = salarySlipDetails[0];
 
   // 🔎 Check if SalarySlipCode already exists in table
+  const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+  if (!companyDetails || companyDetails.length === 0) {
+    throw new CustomError(404, "Company not found");
+  }
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  const salarySlipEntitlementDetails = sequelize.models.SalarySlipEntitlementDetails;
+
   const exists = await salarySlipEntitlementDetails.findOne({
     where: { SalarySlipCode },
   });
@@ -545,7 +492,7 @@ async function saveSalarySlipDetailsdb(salarySlipDetails) {
     };
   }
 
-  // ✅ If not exists, insert all rows
+  // If not exists, insert all rows
   for (const row of salarySlipDetails) {
     const {
       SalarySlipCode,
@@ -582,6 +529,292 @@ async function saveSalarySlipDetailsdb(salarySlipDetails) {
 
   return { status: "ok", created, alreadyExist };
 };
+
+// const createMonthalyEntitle = async (newCompanyCode, entitlements) => {
+
+//   try {
+//     if (!Array.isArray(entitlements) || entitlements.length === 0) {
+//       return {
+//         status: "error",
+//         message: "Entitlements array is empty or invalid",
+//       };
+//     }
+
+//     const branchCodes = [...new Set(entitlements.map(e => e.BranchCode))];
+//     if (branchCodes.length > 1) {
+//       return {
+//         status: "error",
+//         message: "All entitlements must belong to the same BranchCode.",
+//       };
+//     }
+
+//     const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+//     if (!companyDetails || companyDetails.length === 0) {
+//       throw new CustomError(404, "Company not found");
+//     }
+//     const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+//     const salaryslipMaster = sequelize.models.SalarySlip;
+
+//     const salarySlipCode = await salaryslipMaster.findOne({
+//       where: {
+//         months: entitlements[0].Month,
+//         years: entitlements[0].Year,
+//         branchCode: entitlements[0].BranchCode,
+//       },
+//       attributes: ['SalarySlipCode'],
+//     });
+//     if (!salarySlipCode) {
+//       return {
+//         status: "error",
+//         message: "No salary slip found " + entitlements[0].Month + "/" + entitlements[0].Year + " for " + entitlements[0].BranchCode,
+//       };
+//     };
+
+//     const existingMonthlyList = [];
+//     const existingSlipList = [];
+
+//     for (const [index, e] of entitlements.entries()) {
+//       const {
+//         EmpName,
+//         EmpID,
+//         Entitle,
+//         BranchCode,
+//         Month,
+//         Year,
+//         SalaryHeadCode,
+//         SalaryHead,
+//       } = e;
+
+//       const MonthlyEntitlementEntry = sequelize.models.MonthlyEntitlementEntry;
+//       const SalarySlipEntitlementDetails = sequelize.models.SalarySlipEntitlementDetails;
+//       const SHM = sequelize.models.SalaryHeadMaster;
+
+//       const existingMonthly = await MonthlyEntitlementEntry.findOne({
+//         where: { EmpID, Month, Year, SalaryHeadCode },
+//       });
+
+//       if (!existingMonthly) {
+//         await MonthlyEntitlementEntry.create({
+//           BranchCode,
+//           Month,
+//           Year,
+//           CreatedBy: "Admin",
+//           EmpID,
+//           EmpName,
+//           SalaryHeadCode,
+//           SalaryHead,
+//           Entitle,
+//         });
+//       } else {
+//         existingMonthlyList.push({
+//           EmpID,
+//           Month,
+//           Year,
+//           SalaryHeadCode,
+//           SalaryHead
+//         });
+//       }
+//       const existingSlip = await SalarySlipEntitlementDetails.findOne({
+//         where: { SalarySlipCode: salarySlipCode.SalarySlipCode, EmpCode: EmpID, HeadCode: SalaryHeadCode },
+//       });
+
+//       if (!existingSlip) {
+//         const EarnDedu = await SHM.findOne({ where: { Code: SalaryHeadCode }, attributes: ['EarningDeduction'], });
+//         await SalarySlipEntitlementDetails.create({
+//           SalarySlipCode: salarySlipCode ? salarySlipCode.SalarySlipCode : "Unknown",
+//           HeadCode: SalaryHeadCode,
+//           Name: SalaryHead,
+//           Rate: Entitle,
+//           Amount: Entitle,
+//           EmpCode: EmpID,
+//           EarnDedu: EarnDedu ? EarnDedu.EarningDeduction : "Earning",
+//           SNo: index + 1,
+//         });
+//       } else {
+//         existingSlipList.push({
+//           EmpCode: EmpID,
+//           HeadCode: SalaryHeadCode,
+//           Name: SalaryHead
+//         });
+//       }
+//     }
+//     return {
+//       status: "success",
+//       message: "Monthly entitlements processed successfully.",
+//       existingMonthalyEntitlementEntry: existingMonthlyList,
+//       existingSalarySlip: existingSlipList
+//     };
+//   } catch (error) {
+//     console.error("Error in createMonthalyEntitle:", error);
+//     return {
+//       status: "error",
+//       message: "Error while saving entitlements: " + error.message,
+//     };
+//   }
+// };
+
+const createMonthalyEntitle = async (companyCode, entitlements) => {
+  const branchCodes = [...new Set(entitlements.map(e => e.BranchCode))];
+
+  if (branchCodes.length > 1) {
+    return {
+      status: "error",
+      message: "All entitlements must belong to the same BranchCode",
+    };
+  }
+
+  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+  if (!companyDetails?.length) {
+    return { status: "error", message: "Company not found" };
+  }
+
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  const {
+    MonthlyEntitlementEntry,
+    SalarySlipEntitlementDetails,
+    SalarySlip,
+    SalaryHeadMaster,
+  } = sequelize.models;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const { Month, Year, BranchCode } = entitlements[0];
+
+    // 🔹 Get Salary Slip
+    const salarySlip = await SalarySlip.findOne({
+      where: { months: Month, years: Year, branchCode: BranchCode },
+      attributes: ["SalarySlipCode"],
+      transaction,
+    });
+
+    if (!salarySlip) {
+      return {
+        status: "error",
+        message: `No salary slip found for ${Month}/${Year} - ${BranchCode}`,
+      };
+    }
+
+    const salarySlipCode = salarySlip.SalarySlipCode;
+
+    // 🔹 Prepare Data
+    const empIds = entitlements.map(e => e.EmpID);
+    const headCodes = entitlements.map(e => e.SalaryHeadCode);
+
+    // 🔹 Fetch Existing Monthly Entitlements
+    const existingMonthly = await MonthlyEntitlementEntry.findAll({
+      where: { EmpID: empIds, Month, Year, SalaryHeadCode: headCodes },
+      attributes: ["EmpID", "SalaryHeadCode"],
+      raw: true,
+      transaction,
+    });
+
+    const monthlySet = new Set(
+      existingMonthly.map(e => `${e.EmpID}_${e.SalaryHeadCode}`)
+    );
+
+    // 🔹 Fetch Existing Salary Slip Entitlements
+    const existingSlip = await SalarySlipEntitlementDetails.findAll({
+      where: {
+        SalarySlipCode: salarySlipCode,
+        EmpCode: empIds,
+        HeadCode: headCodes,
+      },
+      attributes: ["EmpCode", "HeadCode"],
+      raw: true,
+      transaction,
+    });
+
+    const slipSet = new Set(
+      existingSlip.map(e => `${e.EmpCode}_${e.HeadCode}`)
+    );
+
+    // 🔹 Fetch Salary Head Master
+    const salaryHeads = await SalaryHeadMaster.findAll({
+      attributes: ["Code", "EarningDeduction"],
+      raw: true,
+      transaction,
+    });
+
+    const headMap = {};
+    salaryHeads.forEach(h => (headMap[h.Code] = h.EarningDeduction));
+
+    // 🔹 Prepare Inserts
+    const monthlyInsert = [];
+    const slipInsert = [];
+
+    const existingMonthlyList = [];
+    const existingSlipList = [];
+
+    entitlements.forEach((e, index) => {
+      const monthlyKey = `${e.EmpID}_${e.SalaryHeadCode}`;
+      const slipKey = `${e.EmpID}_${e.SalaryHeadCode}`;
+
+      if (!monthlySet.has(monthlyKey)) {
+        monthlyInsert.push({
+          BranchCode: e.BranchCode,
+          Month: e.Month,
+          Year: e.Year,
+          EmpID: e.EmpID,
+          EmpName: e.EmpName,
+          SalaryHeadCode: e.SalaryHeadCode,
+          SalaryHead: e.SalaryHead,
+          Entitle: e.Entitle,
+          CreatedBy: "Admin",
+        });
+      } else {
+        existingMonthlyList.push({
+          EmpID: e.EmpID,
+          SalaryHeadCode: e.SalaryHeadCode,
+        });
+      }
+
+      if (!slipSet.has(slipKey)) {
+        slipInsert.push({
+          SalarySlipCode: salarySlipCode,
+          HeadCode: e.SalaryHeadCode,
+          Name: e.SalaryHead,
+          Rate: e.Entitle,
+          Amount: e.Entitle,
+          EmpCode: e.EmpID,
+          EarnDedu: headMap[e.SalaryHeadCode] || "Earning",
+          SNo: index + 1,
+        });
+      } else {
+        existingSlipList.push({
+          EmpCode: e.EmpID,
+          HeadCode: e.SalaryHeadCode,
+        });
+      }
+    });
+
+    // 🔹 Bulk Insert
+    if (monthlyInsert.length) {
+      await MonthlyEntitlementEntry.bulkCreate(monthlyInsert, { transaction });
+    }
+
+    if (slipInsert.length) {
+      await SalarySlipEntitlementDetails.bulkCreate(slipInsert, { transaction });
+    }
+
+    await transaction.commit();
+
+    return {
+      status: "success",
+      message: "Monthly entitlements processed successfully",
+      existingMonthlyEntitlement: existingMonthlyList,
+      existingSalarySlip: existingSlipList,
+    };
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Repository Error:", error);
+    return {
+      status: "error",
+      message: error.message,
+    };
+  }
+};
+
 
 const getEmployeesForIncomeTaxComputationFromDB = async (financialYear, branchCode) => {
   try {
@@ -705,7 +938,7 @@ function mergeSalaryData(data, matched, empCode) {
 
   return matched.map(m => {
     if (dataMap.has(m.Code)) {
-      return dataMap.get(m.Code); 
+      return dataMap.get(m.Code);
     } else {
       return {
         EmpCode: empCode,
@@ -951,7 +1184,7 @@ const getSalaryHeadDataRepo = async () => {
 
 const getSalaryBreakupRepo = async (params) => {
   try {
-    const { companyCode,branchCode,empCode,ctc,grade,category, minimumWages,isMetro,father,mother,isPSR } = params;
+    const { companyCode, branchCode, empCode, ctc, grade, category, minimumWages, isMetro, father, mother, isPSR } = params;
 
     let branchWages;
     branchWages = await BranchesMinimumWages.findOne({
@@ -959,7 +1192,7 @@ const getSalaryBreakupRepo = async (params) => {
     });
 
     if (!branchWages) {
-      branchWages=minimumWages;
+      branchWages = minimumWages;
     }
 
     let wage = null;
@@ -987,10 +1220,10 @@ const getSalaryBreakupRepo = async (params) => {
       wage = minimumWages;
     }
     let data;
-    if(branchWages?.Branch){
+    if (branchWages?.Branch) {
       data = await LWF.findOne({ where: { Location: branchWages?.Branch } });
     }
-    else data=0;
+    else data = 0;
 
     function isCurrentMonthIncluded(text) {
 
@@ -1042,8 +1275,8 @@ const getAllSlaryHead = async () => {
 module.exports = {
   createNewSalaryHeadCode,
   createNewSalaryHeaddb,
-  saveUpdate,
-  findSalaryByGrade,
+  // saveUpdate,
+  // findSalaryByGrade,
   getMinimumWagesByBranch,
   setReimbursmentdb,
   findOneEntitle,
@@ -1051,7 +1284,7 @@ module.exports = {
   getSalaryHeaddb,
   getLocationsOfProfessionalTaxdb,
   saveGLDetailsdb,
-  calculateSalarySlip,
+  // calculateSalarySlip,
   saveSalarySlipdb,
   getSalarySlipInMaster,
   saveSalarySlipDetailsdb,

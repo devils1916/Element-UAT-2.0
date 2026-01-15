@@ -246,14 +246,15 @@ const saveNewEmployee = async (req, res) => {
   try {
     const companyCode = req.auth.companyCode;
     const employee = req.body;
-    const { EmpID, Email, MobileNo, AdharNo, PanNo } = employee;
+    const { EmpID, Email, MobileNo, AdharNo, PanNo, UANNo } = employee;
 
     const validationResult = await validateEmployeeDetails(
       EmpID,
       Email,
       MobileNo,
       AdharNo,
-      PanNo
+      PanNo,
+      UANNo
     );
 
     if (validationResult) {

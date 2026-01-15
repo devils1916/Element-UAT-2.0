@@ -3,7 +3,7 @@ const employeeMaster = require("../models/employeeMaster.model.js");
 const CustomError = require("../utils/errorHandler.util.js");
 const { executeQuery } = require("../utils/dbhelper.util.js");
 const PHRMBranchWise = require("../models/PHBranchWise.model.js");
-const {getDatabaseNameByCompanyCode} = require("./element.repository.js");
+const { getDatabaseNameByCompanyCode } = require("./element.repository.js");
 const { getSequelize } = require("../config/sequelizeManager.js");
 const moment = require("moment");
 
@@ -77,33 +77,33 @@ const findAll = async (companyCode, page, pageSize, search = "", download = fals
 const findOne = async (empId, companyCode) => {
   try {
     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     return (employee = await employeeMaster.findOne({
-      where: { EmpID: empId , newCompanyCode:companyCode},
+      where: { EmpID: empId, newCompanyCode: companyCode },
     }));
   } catch (error) {
     throw new Error("Error in fetching employee by id: " + error.message);
   }
 };
 
-const getAllByBranch = async (branchCode , companyCode) => {
+const getAllByBranch = async (branchCode, companyCode) => {
   try {
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
 
     const employees = await employeeMaster.findAll({
       where: {
@@ -117,20 +117,20 @@ const getAllByBranch = async (branchCode , companyCode) => {
     throw new Error("Error in fetching employee by branch: " + error.message);
   }
 };
-const RMofBranch = async (branchCode , companyCode) => {
+const RMofBranch = async (branchCode, companyCode) => {
   try {
     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     const rms = await employeeMaster.findAll({
       where: {
-        newCompanyCode:companyCode,
+        newCompanyCode: companyCode,
         branchCode: branchCode,
         [Op.and]: [
           Sequelize.literal("ISNULL(IsBilled, 0) = 0"),
@@ -147,18 +147,18 @@ const RMofBranch = async (branchCode , companyCode) => {
 
 const updateEmployee = async (employee, companyCode) => {
   const empId = employee.EmpID;
- console.log ('company code ...', companyCode);
+  console.log('company code ...', companyCode);
   try {
-      // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
-    return await employeeMaster.update(employee, { where: { EmpID: empId, newCompanyCode : companyCode} });
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
+    return await employeeMaster.update(employee, { where: { EmpID: empId, newCompanyCode: companyCode } });
   } catch (error) {
     console.error("Update failed:", error);
     throw new Error("! error in Updating employee: " + error.message);
@@ -167,15 +167,15 @@ const updateEmployee = async (employee, companyCode) => {
 
 const createEmployee = async (employee, companyCode) => {
   try {
-      // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     return await employeeMaster.create(employee);
   } catch (error) {
     console.error("Error in register new Employee:", error);
@@ -186,14 +186,14 @@ const createEmployee = async (employee, companyCode) => {
 const createNewRM = async (employee) => {
   try {
     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     return await employeeMaster.create({
       EmpID: employee.EmpID,
       Name: employee.Name,
@@ -227,19 +227,19 @@ const createNewRM = async (employee) => {
 
 const createNewEMPid = async (companyCode) => {
   try {
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     const latestEmp = await employeeMaster.findOne({
       attributes: ["EmpId"],
       where: {
-        newCompanyCode:companyCode,
+        newCompanyCode: companyCode,
         EmpId: {
           [Op.like]: "EMP%",
         },
@@ -269,16 +269,16 @@ const createNewEMPid = async (companyCode) => {
 const createNewHLid = async (companyCode) => {
   try {
 
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  //const sequencemaster = sequelize.models.sequencemaster;
-   // const result = await executeQuery(
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    //const sequencemaster = sequelize.models.sequencemaster;
+    // const result = await executeQuery(
     const result = sequelize.query("SELECT CONCAT(prefix, LastValue) AS NewEmployeeCode FROM sequencemaster WHERE head = 'Employee';"
     );
 
@@ -297,41 +297,45 @@ const validateEmployeeDetails = async (
   Email,
   MobileNo,
   AdharNo,
-  PanNo
+  PanNo,
+  UANNo
 ) => {
   try {
     const existing = await employeeMaster.findOne({
       where: {
         [Op.or]: [
           { EmpID },
-          //  { Email },
-          //   { MobileNo },
-          // { AdharNo },
-          // { PanNo }
+          { Email },
+          { MobileNo },
+          { AdharNo },
+          { PanNo },
+          { UANNo }
         ],
       },
     });
 
     if (!existing) return null;
 
-    const data = existing.get(); // safe access
+    const data = existing.get(); 
     const conflicts = [];
 
     if (data.EmpID === EmpID) conflicts.push("EmpID");
-    //   if (data.Email?.toLowerCase() === Email?.toLowerCase()) conflicts.push("Email");
-    //  if (data.MobileNo === MobileNo) conflicts.push("MobileNo");
-    //    if (data.AdharNo === AdharNo) conflicts.push("AdharNo");
-    //   if (data.PanNo?.toUpperCase() === PanNo?.toUpperCase()) conflicts.push("PanNo");
+    if (data.Email?.toLowerCase() === Email?.toLowerCase()) conflicts.push("Email");
+    if (data.MobileNo === MobileNo) conflicts.push("MobileNo");
+    if (data.AdharNo === AdharNo) conflicts.push("AdharNo");
+    if (data.PanNo?.toUpperCase() === PanNo?.toUpperCase()) conflicts.push("PanNo");
+    if (data.UANNo === UANNo) conflicts.push("UANNo");
 
     return {
       message: `Conflict: ${conflicts.join(", ")} already in use.`,
       conflictFields: conflicts,
       existingEmployee: {
         EmpID: data.EmpID,
-        //     Email: data.Email,
-        //   MobileNo: data.MobileNo,
-        //   AdharNo: data.AdharNo,
-        //   PanNo: data.PanNo
+        Email: data.Email,
+        MobileNo: data.MobileNo,
+        AdharNo: data.AdharNo,
+        PanNo: data.PanNo,
+        UANNo: data.UANNo,
       },
     };
   } catch (error) {
@@ -342,16 +346,16 @@ const validateEmployeeDetails = async (
 
 const getAllDepartment = async (companyCode) => {
   try {
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-    const result= await sequelize.query("SELECT DepartmentCode, Description FROM DepartmentMaster");
-    return result 
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const result = await sequelize.query("SELECT DepartmentCode, Description FROM DepartmentMaster");
+    return result
   } catch (error) {
     console.error("Error in fetching departments:", error);
     throw new CustomError(
@@ -393,13 +397,13 @@ const getDepartmentCodeByDescription = async (description, companyCode) => {
 const getAllDesignation = async (companyCode) => {
   try {
     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
     const result = await sequelize.query("SELECT Description,DesignationCode FROM DesignationMaster");
     return result;
   } catch (error) {
@@ -441,15 +445,15 @@ const getDesignationCodeByDescription = async (description, companyCode) => {
 
 const getAllEduQualificationOptions = async (companyCode) => {
   try {
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
 
     return await employeeMaster.findAll({
       attributes: [
@@ -471,14 +475,14 @@ const getAllEduQualificationOptions = async (companyCode) => {
 const getAllProfQualificationOptions = async (companyCode) => {
   try {
     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const employeeMaster = sequelize.models.Employee;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const employeeMaster = sequelize.models.Employee;
     return await employeeMaster.findAll({
       attributes: [
         [
@@ -499,15 +503,15 @@ const getAllProfQualificationOptions = async (companyCode) => {
 
 const getAllRMsdb = async (branchCode, companyCode) => {
   try {
-     // Get company details
-  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
-  if (!companyDetails || companyDetails.length === 0) {
-    throw new CustomError(404, "Company not found");
-  }
+    // Get company details
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+    if (!companyDetails || companyDetails.length === 0) {
+      throw new CustomError(404, "Company not found");
+    }
 
-  // Connect to the company's database
-  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
-  const PHRMBranchWise = sequelize.models.PHRMBranchWise;
+    // Connect to the company's database
+    const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+    const PHRMBranchWise = sequelize.models.PHRMBranchWise;
     if (branchCode) {
       return await PHRMBranchWise.findAll({ where: { BranchCode: branchCode, newCompanyCode: companyCode } });
     }

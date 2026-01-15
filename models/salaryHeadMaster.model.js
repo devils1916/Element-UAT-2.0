@@ -42,5 +42,3 @@ module.exports = (sequelize, DataTypes) => {
     freezeTableName: true,
   }
 )};
-
-//module.exports = SalaryHeadMaster;
