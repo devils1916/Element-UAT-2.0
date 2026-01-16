@@ -2,6 +2,7 @@ const { getEntitlementDetailsByEmpCode } = require("../repository/SalarySlipEnti
 
 
 const getByEmpCode = async (req, res) => {
+  const companyCode = req.auth.companyCode;
   const { EmpCode } = req.body;
 
   if (!EmpCode) {
@@ -12,7 +13,7 @@ const getByEmpCode = async (req, res) => {
   }
 
   try {
-    const data = await getEntitlementDetailsByEmpCode(EmpCode);
+    const data = await getEntitlementDetailsByEmpCode(EmpCode,companyCode);
     res.status(200).json({
       success: true,
       data,

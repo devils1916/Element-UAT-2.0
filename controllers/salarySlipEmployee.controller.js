@@ -2,16 +2,17 @@ const salarySlipEmployeeRepo = require('../repository/salarySlipEmployee.reposit
 
 const fetchByAttendenceCode = async (req, res) => {
   try {
-    const { AttendenceCode } = req.body;
+    const companyCode = req.auth.companyCode;
+    const { AttendanceCode } = req.body;
 
-    if (!AttendenceCode) {
+    if (!AttendanceCode) {
       return res.status(400).json({
         success: false,
         message: 'AttendenceCode is required',
       });
     }
 
-    const result = await salarySlipEmployeeRepo.getByAttendenceCode(AttendenceCode);
+    const result = await salarySlipEmployeeRepo.getByAttendenceCode(AttendanceCode, companyCode);
 
     res.json({ success: true, data: result });
   } catch (error) {

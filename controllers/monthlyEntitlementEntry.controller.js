@@ -3,12 +3,13 @@ const { bulkCreateMonthlyEntitlements, getMonthlyEntitlements } = require('../re
 const saveMonthlyEntitlements = async (req, res) => {
   try {
     const { entries } = req.body;
+    const companyCode = req.auth.companyCode;
 
     if (!Array.isArray(entries) || entries.length === 0) {
       return res.status(400).json({ success: false, message: 'No entries provided' });
     }
 
-    const result = await bulkCreateMonthlyEntitlements(entries);
+    const result = await bulkCreateMonthlyEntitlements(entries, companyCode);
 
     res.status(200).json({
       success: true,
@@ -28,9 +29,10 @@ const saveMonthlyEntitlements = async (req, res) => {
 // get api
 const fetchMonthlyEntitlements = async (req, res) => {
   try {
+    const companyCode  = req.auth.companyCode;
     const { month, year, branchCode } = req.query;
 
-    const result = await getMonthlyEntitlements({ month, year, branchCode });
+    const result = await getMonthlyEntitlements({ month, year, branchCode, companyCode });
 
     res.status(200).json({
       success: true,

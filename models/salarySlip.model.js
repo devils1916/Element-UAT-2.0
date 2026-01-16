@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     IsApproved: { type: DataTypes.BOOLEAN, allowNull: true },
     EmpType: { type: DataTypes.STRING(25), allowNull: false },
     AttendenceCode: { type: DataTypes.STRING(25), allowNull: false },
+    neCompanyCode : { type: DataTypes.STRING(100), allowNull: false },
   }, {
     tableName: 'SalarySlipMaster',
     timestamps: false,

@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { element } = require('../config/db');
 
-const AttendenceDetails = element.define('AttendenceDetails', {
+module.exports = (sequelize, DataTypes) => {
+    return sequelize.define('AttendenceDetails', {
   AttendenceCode: { type: DataTypes.STRING(25), allowNull: false },
   BranchCode: { type: DataTypes.STRING(25) },
   BranchName: { type: DataTypes.STRING(200) },
@@ -30,5 +31,5 @@ const AttendenceDetails = element.define('AttendenceDetails', {
   tableName: 'AttendenceDetails',
   timestamps: false
 });
-
-module.exports = AttendenceDetails;
+}
+//module.exports = AttendenceDetails;

@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     Designation: { type: DataTypes.STRING(100), allowNull: true },
     EmpBranchCode: { type: DataTypes.STRING(25), allowNull: true },
     EmpBranchName: { type: DataTypes.STRING(100), allowNull: true },
+    newCompanyCode: {type: DataTypes.STRING(100), allowNull: false}
   }, {
     tableName: "SalarySlipEmployee",
     timestamps: false,

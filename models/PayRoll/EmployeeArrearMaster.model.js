@@ -1,7 +1,8 @@
 const { DataTypes } = require("sequelize");
 const { element } = require("../../config/db");
 
-const EmployeeArrearMaster = element.define(
+module.exports = (sequelize, DataTypes) => {
+    sequelize.define(
   "EmployeeArrearMaster",
   {
     Id: {
@@ -81,5 +82,5 @@ const EmployeeArrearMaster = element.define(
     timestamps: false,
   }
 );
-
-module.exports = EmployeeArrearMaster;
+}
+//module.exports = EmployeeArrearMaster;

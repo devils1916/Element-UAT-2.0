@@ -1,9 +1,20 @@
 const MonthlyEntitlementEntry = require('../models/monthlyEntitlementEntry.model');
 const { Op } = require('sequelize');
+const { getDatabaseNameByCompanyCode } = require('./element.repository');
+const { getSequelize } = require('../config/sequelizeManager');
 
-const bulkCreateMonthlyEntitlements = async (entries) => {
+const bulkCreateMonthlyEntitlements = async (entries, companyCode) => {
+
   const filteredEntries = [];
+ 
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
 
+  if (!companyDetails?.length) {
+    throw new CustomError(404, "Company not found");
+  }
+
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  const MonthlyEntitlementEntry = sequelize.models.MonthlyEntitlementEntry;
   for (const entry of entries) {
     const exists = await MonthlyEntitlementEntry.findOne({
       where: {
@@ -25,7 +36,15 @@ const bulkCreateMonthlyEntitlements = async (entries) => {
 
   return await MonthlyEntitlementEntry.bulkCreate(filteredEntries, { validate: true });
 };
-const getMonthlyEntitlements = async ({ month, year, branchCode }) => {
+const getMonthlyEntitlements = async ({ month, year, branchCode, companyCode }) => {
+  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+
+  if (!companyDetails?.length) {
+    throw new CustomError(404, "Company not found");
+  }
+
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  const MonthlyEntitlementEntry = sequelize.models.MonthlyEntitlementEntry;
   const whereClause = {};
 
   if (month) whereClause.Month = month;

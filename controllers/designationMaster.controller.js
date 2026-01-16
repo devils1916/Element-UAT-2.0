@@ -4,7 +4,8 @@ const { createDesignationRepo, getAllDesignationsRepo, getDesignationByIdRepo, u
 
 
 const create = async (req, res) => {
-  try {
+  try { 
+    const companyCode = req.auth.companyCode;
     const { DesignationCode, Description, CreatedBy, ModifiedBy } = req.body;
 
     if (!DesignationCode || !Description) {
@@ -16,6 +17,7 @@ const create = async (req, res) => {
       Description,
       CreatedBy,
       ModifiedBy,
+      companyCode
     });
 
     res.status(201).json({ message: "Designation created successfully", data: designation });
@@ -26,7 +28,9 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const designations = await getAllDesignationsRepo();
+    const companyCode = req.auth.companyCode;
+    const designations = await getAllDesignationsRepo(companyCode);
+    
     res.json({ data: designations });
   } catch (error) {
     res.status(500).json({ message: "Error fetching designations", error: error.message });
@@ -35,8 +39,9 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
+    const companyCode = req.auth.companyCode;
     const { id } = req.params;
-    const designation = await getDesignationByIdRepo(id);
+    const designation = await getDesignationByIdRepo(id, companyCode);
 
     if (!designation) {
       return res.status(404).json({ message: "Designation not found" });
@@ -50,8 +55,9 @@ const getById = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const companyCode = req.auth.companyCode;
     const { id } = req.params;
-    const updated = await updateDesignationRepo(id, req.body);
+    const updated = await updateDesignationRepo(id, req.body, companyCode);
 
     if (!updated) {
       return res.status(404).json({ message: "Designation not found" });
@@ -65,8 +71,9 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
+    const companyCode = req.auth.companyCode;
     const { id } = req.params;
-    const deleted = await deleteDesignationRepo(id);
+    const deleted = await deleteDesignationRepo(id, companyCode);
 
     if (!deleted) {
       return res.status(404).json({ message: "Designation not found" });

@@ -2,7 +2,8 @@
 const { DataTypes } = require("sequelize");
 const { element } = require("../config/db");
 
-const DesignationMaster = element.define("DesignationMaster", {
+module.exports = (sequelize, DataTypes) => {
+    return sequelize.define("DesignationMaster", {
   ID: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -12,9 +13,10 @@ const DesignationMaster = element.define("DesignationMaster", {
   Description: { type: DataTypes.STRING(255), allowNull: false },
   CreatedBy: { type: DataTypes.STRING(100), allowNull: false },
   ModifiedBy: { type: DataTypes.STRING(100), allowNull: false },
+  newCompanyCode : { type: DataTypes.STRING(100), allowNull: false },
 }, {
   tableName: "DesignationMaster",
   timestamps: false,
 });
-
-module.exports = DesignationMaster;
+}
+//module.exports = DesignationMaster;

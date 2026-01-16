@@ -1,6 +1,16 @@
+const { getSequelize } = require('../config/sequelizeManager');
 const AttendenceDetails = require('../models/employeeAttendenceDetails.model');
+const { getDatabaseNameByCompanyCode } = require('./element.repository');
 
-const getAttendanceByCodeAndEmp = async (AttendenceCode, EmployeeCode) => {
+const getAttendanceByCodeAndEmp = async (AttendenceCode, EmployeeCode, companyCode) => {
+  const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+        if (!companyDetails || companyDetails.length === 0) {
+            throw new CustomError(404, "Company not found");
+        }
+        const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+        const AttendenceDetails = sequelize.models.AttendenceDetails;
+        if (!AttendenceDetails) throw new Error('AttendenceDetails model not defined in this database');
   return await AttendenceDetails.findOne({
     where: {
       AttendenceCode,
@@ -11,7 +21,7 @@ const getAttendanceByCodeAndEmp = async (AttendenceCode, EmployeeCode) => {
 // Fetch by AttendenceCode + BranchCode or none
 
 // attendenceDetails.repository.js
-const getAttendanceFiltered = async (AttendenceCode, BranchCode, page = 1, limit = 10) => {
+const getAttendanceFiltered = async (AttendenceCode, BranchCode, page = 1, limit = 10, companyCode) => {
   try {
     const whereClause = {};
 
@@ -24,6 +34,14 @@ const getAttendanceFiltered = async (AttendenceCode, BranchCode, page = 1, limit
     }
 
     const offset = (page - 1) * limit;
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+        if (!companyDetails || companyDetails.length === 0) {
+            throw new CustomError(404, "Company not found");
+        }
+        const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+
+        const AttendenceDetails = sequelize.models.AttendenceDetails;
+        if (!AttendenceDetails) throw new Error('AttendenceDetails model not defined in this database');
 
     const { count, rows } = await AttendenceDetails.findAndCountAll({
       where: whereClause,

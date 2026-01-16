@@ -45,9 +45,11 @@ app.use("/contact", cotectUsRout);
 app.use("/element", elementRout); // all done
 app.use("/employee", employee); // all done           --------------changes REMAINING AT validateEmployeeDetails  function
 app.use("/company", company);   // done
+app.use("/employee", employee); // all done
+app.use("/company", company); // all done 
 app.use("/branch", branches); //all done
 app.use("/salary", salHead);    // all done -- TDS part remaining
-app.use("/email", email);       //  Changes will be done later
+app.use("/email", email);
 app.use("/grade", GradeMaster); // done
 app.use("/country", countryMaster); // done
 app.use("/select", select);     // done
@@ -59,12 +61,23 @@ app.use("/api/salary-slip-entitlement", entitlementDetailsRoute);
 app.use('/api/attendance', employeeAttendenceRoutes);
 app.use('/api/monthentit', monthlyEntitlementEntry);
 app.use("/api/emparrear", employeeArrearRoutes);
+app.use("/admin", attendance); // 
+app.use("/admin", bulkUpload); // done
+app.use('/api/salary-slip_details', salarySlipRoutes); //  done 
+app.use('/api/salary-slip-employee', salarySlipEmployeeRoutes); //done 
+app.use("/api/salary-slip-entitlement", entitlementDetailsRoute); // done
+app.use('/api/attendance', employeeAttendenceRoutes); //  done
+app.use('/api/monthentit', monthlyEntitlementEntry); // done
+app.use("/api/emparrear", employeeArrearRoutes); // done
 app.use("/api/emparreardetails", employeeArrearDetailsRoutes);
 app.use("/api/emparrear/transistion", transitionRoutes);
 app.use("/payroll", payrollRoutes);
 app.use("/fnf", FNFRoutes);
 app.use("/departments", DepartmentRout);
 app.use("/designation", DesignationRoute);
+app.use("/departments", DepartmentRout); //done
+app.use("/designation", DesignationRoute); // done 
+
 app.use("/api/reports", ReportsRoute);
 
 app.use(errorMiddleware);

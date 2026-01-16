@@ -6,8 +6,8 @@ const BranchModel = require("./../models/branchMaster.model")
 const GradeModel = require("./../models/Grade.model")
 const CountryModel = require("./../models/countryMaster.model")
 const ShiftModel = require("./../models/ShiftMaster.model")
-BranchCommercialHeadModel = require("./../models/BranchCommercialHead.Model")
-const employeeEntitlementModel = require("./../models/employeeEntitlement.model")
+BranchCommercialHeadModel = require("./../models/BranchCommercialHead.Model");
+const employeeEntitlementModel = require("./../models/employeeEntitlement.model");
 const SalaryHeadMasterNewModel = require("./../models/SalaryHeadMasterNew.model")
 // const salaryHeadMaster2 = require("./../models/salaryHeadMaster.model");
 const reimbursementModel = require("./../models/employeeReimbursement.model");
@@ -16,9 +16,18 @@ const salarySlipModel = require("./../models/salarySlip.model");
 const salarySlipEmployeeModel = require("./../models/salarySlipEmployee.model");
 const salarySlipEntitlementDetailsModel = require("./../models/SalarySlipEntitlementDetails.model");
 const MonthlyEntitlementEntry = require("./../models/monthlyEntitlementEntry.model");
+<<<<<<< HEAD
 const AttendenceMasterModel = require("../models/attendenceMaster.model");
 const SequenceMaster1 = require("../models/sequenceMaster1.model");
 
+=======
+const SalarySlipEmployeeModel = require("./../models/salarySlipEmployee.model");
+const DesignationMasterModel = require("../models/designationMaster.model");
+const DepartmentMasterModel = require("./../models/departmentMaster.model");
+const MonthlyEntitlementEntryModel = require('./../models/monthlyEntitlementEntry.model');
+const EmployeeArrearMasterModel  =  require('./../models/PayRoll/EmployeeArrearMaster.model');
+const AttendenceDetailsModel = require('./../models/employeeAttendenceDetails.model')
+>>>>>>> 16374d9c757a3eb91b7a4e23df1e2bdab2813d84
 module.exports = (sequelize, DataTypes) => {
   EmployeeModel(sequelize, DataTypes);
   PHRMBranchWiseModel(sequelize, DataTypes);
@@ -38,6 +47,15 @@ module.exports = (sequelize, DataTypes) => {
   salarySlipEmployeeModel(sequelize, DataTypes);
   salarySlipEntitlementDetailsModel(sequelize, DataTypes);
   MonthlyEntitlementEntry(sequelize, DataTypes);
+<<<<<<< HEAD
   AttendenceMasterModel(sequelize, DataTypes);
   SequenceMaster1(sequelize, DataTypes);
+=======
+  SalarySlipEmployeeModel(sequelize, DataTypes);
+  DesignationMasterModel(sequelize, DataTypes);
+  DepartmentMasterModel(sequelize, DataTypes);
+  MonthlyEntitlementEntryModel (sequelize, DataTypes);
+  EmployeeArrearMasterModel (sequelize, DataTypes);
+  AttendenceDetailsModel (sequelize, DataTypes);
+>>>>>>> 16374d9c757a3eb91b7a4e23df1e2bdab2813d84
 };

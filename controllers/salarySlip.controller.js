@@ -13,12 +13,13 @@ const getAllSlips = async (req, res) => {
       company
     } = req.query;
 
-     console.log("req.query", req.query)
-
+    console.log("req.query", req.query)
+    const companyCode = req.auth.companyCode;
     const result = await salarySlipRepo.getAllSalarySlips(
       { month, year, empType, branchCode, company },
       parseInt(page),
-      parseInt(pageSize)
+      parseInt(pageSize),
+      companyCode
     );
 
     res.status(200).json(result);
@@ -34,6 +35,7 @@ const getAllSlips = async (req, res) => {
 // Rename the local controller function:
 const fetchEmpPayRegister = async (req, res) => {
   try {
+    const companyCode = req.auth.companyCode;
     const { Month, Year, EmpType, BranchCode, page = 1, limit = 10 } = req.query;
 
     const data = await getEmpPayRegister(
@@ -42,7 +44,8 @@ const fetchEmpPayRegister = async (req, res) => {
       EmpType,
       BranchCode,
       parseInt(page),
-      parseInt(limit)
+      parseInt(limit),
+      companyCode
     );
 
     res.status(200).json({ success: true, data });

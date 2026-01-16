@@ -1,7 +1,8 @@
 const { DataTypes } = require("sequelize");
 const { element } = require("../config/db");
 
-const DepartmentMaster = element.define("DepartmentMaster", {
+module.exports = (sequelize, DataTypes) => {
+    return sequelize.define("DepartmentMaster", {
   DepartmentID: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -12,9 +13,10 @@ const DepartmentMaster = element.define("DepartmentMaster", {
   CreatedBy: { type: DataTypes.STRING(100) },
   ModifiedBy: { type: DataTypes.STRING(100) },
   AuthorisedDepartment: { type: DataTypes.STRING(100), allowNull: true },
+  newCompanyCode : { type: DataTypes.STRING(100), allowNull: false },
 }, {
   tableName: "DepartmentMaster",
   timestamps: false
 });
+}
 
-module.exports = DepartmentMaster;

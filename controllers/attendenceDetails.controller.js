@@ -2,13 +2,14 @@ const { getAttendanceByCodeAndEmp, getAttendanceFiltered } = require('../reposit
 
 const fetchAttendanceDetails = async (req, res) => {
   const { AttendenceCode, EmployeeCode } = req.body;
+  const companyCode = req.auth.companyCode;
 
   if (!AttendenceCode || !EmployeeCode) {
     return res.status(400).json({ message: 'AttendenceCode and EmployeeCode are required.' });
   }
 
   try {
-    const details = await getAttendanceByCodeAndEmp(AttendenceCode, EmployeeCode);
+    const details = await getAttendanceByCodeAndEmp(AttendenceCode, EmployeeCode, companyCode);
     res.status(200).json(details);
   } catch (error) {
     console.error('Error fetching attendance details:', error);
@@ -19,9 +20,10 @@ const fetchAttendanceDetails = async (req, res) => {
 
 const fetchAttendanceByBranch = async (req, res) => {
   const { AttendenceCode, BranchCode, page, limit } = req.query;
+  const companyCode = req.auth.companyCode;
 
   try {
-    const attendance = await getAttendanceFiltered(AttendenceCode, BranchCode, page, limit);
+    const attendance = await getAttendanceFiltered(AttendenceCode, BranchCode, page, limit, companyCode);
 
     res.status(200).json({
       success: true,

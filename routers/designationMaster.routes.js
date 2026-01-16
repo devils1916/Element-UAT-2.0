@@ -2,11 +2,11 @@
 const express = require("express");
 const router = express.Router();
 const designationController = require("../controllers/designationMaster.controller");
-
-router.post("/", designationController.create);      // Create
-router.get("/", designationController.getAll);       // Read All
-router.get("/:id", designationController.getById);   // Read One
-router.put("/:id", designationController.update);    // Update
-router.delete("/:id", designationController.remove); // Delete
+const authMiddleware = require("../middleware/auth.Middleware")
+router.post("/", authMiddleware,  designationController.create);      // Create
+router.get("/", authMiddleware, designationController.getAll);       // Read All
+router.get("/:id",authMiddleware, designationController.getById);   // Read One
+router.put("/:id",authMiddleware, designationController.update);    // Update
+router.delete("/:id", authMiddleware, designationController.remove); // Delete
 
 module.exports = router;

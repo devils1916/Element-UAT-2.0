@@ -1,12 +1,21 @@
 const { element } = require('../config/db');
-
-const getEmpPayRegister = async (Month, Year, EmpType, BranchCode, page = 1, limit = 10) => {
+const {getDatabaseNameByCompanyCode} = require('../repository/element.repository');
+const {getSequelize} = require('../config/sequelizeManager');
+const getEmpPayRegister = async (Month, Year, EmpType, BranchCode, page = 1, limit = 10, companyCode) => {
   try {
-    const result = await element.query(
-      `EXEC Proc_EmpPayRegister :Month, :Year, :EmpType, :BranchCode`,
+    const companyDetails = await getDatabaseNameByCompanyCode(companyCode);
+
+  if (!companyDetails?.length) {
+    throw new CustomError(404, "Company not found");
+  }
+
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  console.log('........ Proc_EmpPayRegister connect', sequelize);
+    const result = await sequelize.query(
+      `EXEC dbo.Proc_EmpPayRegister :Month, :Year, :EmpType, :BranchCode`,
       {
         replacements: { Month, Year, EmpType, BranchCode },
-        type: element.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT,
       }
     );
 
