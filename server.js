@@ -43,7 +43,7 @@ const ReportsRoute = require("./routers/reports.route")
 
 app.use("/contact", cotectUsRout);
 app.use("/element", elementRout); // all done
-app.use("/employee", employee); // all done
+app.use("/employee", employee); // all done           --------------changes REMAINING AT validateEmployeeDetails  function
 app.use("/company", company);   // done
 app.use("/branch", branches); //all done
 app.use("/salary", salHead);    // all done -- TDS part remaining
@@ -51,8 +51,8 @@ app.use("/email", email);       //  Changes will be done later
 app.use("/grade", GradeMaster); // done
 app.use("/country", countryMaster); // done
 app.use("/select", select);     // done
-app.use("/admin", attendance);
-app.use("/admin", bulkUpload);    //working
+app.use("/admin", attendance);   // working
+app.use("/admin", bulkUpload);    //Done 
 app.use('/api', salarySlipRoutes);
 app.use('/api/salary-slip-employee', salarySlipEmployeeRoutes);
 app.use("/api/salary-slip-entitlement", entitlementDetailsRoute);
@@ -65,7 +65,6 @@ app.use("/payroll", payrollRoutes);
 app.use("/fnf", FNFRoutes);
 app.use("/departments", DepartmentRout);
 app.use("/designation", DesignationRoute);
-
 app.use("/api/reports", ReportsRoute);
 
 app.use(errorMiddleware);

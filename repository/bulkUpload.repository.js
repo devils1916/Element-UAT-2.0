@@ -1,58 +1,22 @@
-const SequenceMaster1 = require("../models/sequenceMaster1.model");
-const AttendanceMaster = require("../models/attendenceMaster.model");
+const { getSequelize } = require('../config/sequelizeManager');
+const { getDatabaseNameByCompanyCode } = require('./element.repository');
 
-// const createFormattedCode = async ({ CompanyCode, BranchCode, Head, Year, Month }) => {
- 
-//    // Step 1: Check if AttendanceMaster already has a code for this branch, year, and month
-//     const existingRecord = await AttendanceMaster.findOne({
-//       where: {
-//         CompanyCode,
-//         BranchCode,
-//         AttendenceYear: Year,
-//         AttendenceMonth: Month,
-//       },
-//     });
+const createFormattedCode = async ({ newCompanyCode, CompanyCode, BranchCode, Head, Year, Month }) => {
 
-//     if (existingRecord?.AttendenceCode) {
-//       // Return existing code if present
-//       return existingRecord.AttendenceCode;
-//     }
-  
+  const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+  if (!companyDetails || companyDetails.length === 0) {
+    throw new CustomError(404, "Company not found");
+  }
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
 
-//   // Step 2: Get sequence config from SequenceMaster1
-//   const record = await SequenceMaster1.findOne({
-//     where: { CompanyCode, BranchCode, Head:Head },
-//   });
-
-//    console.log("record", record)
-    
-//   if (!record) {
-//     throw new Error("Prefix configuration not found for given parameters");
-//   }
-
-//   // Step 3: Format code using prefix + padded increment + financial year
-//   const lastvalue = record.LastValue
-//   const paddedValue = lastvalue.toString().padStart(5, "0");
-//   const now = new Date();
-//   const fyStart = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
-//   const fyEnd = fyStart + 1;
-//   const financialYear = `${fyStart.toString().slice(-2)}-${fyEnd.toString().slice(-2)}`;
-
-//   const code = `${record.CompanyPrefix}/${record.BranchPrefix}/${record.Prefix}/${paddedValue}/${financialYear}`;
-//     await SequenceMaster1.update(
-//     { LastValue: lastvalue + record.Increment },
-//     { where: { CompanyCode, BranchCode, Head: Head } }
-//   );
-//   return code;
-// }
-const createFormattedCode = async ({ CompanyCode, BranchCode, Head, Year, Month }) => {
-  // Step 1: Check if AttendanceMaster already has a code
+  const AttendanceMaster = sequelize.models.AttendenceMaster;
   const existingRecord = await AttendanceMaster.findOne({
     where: {
       CompanyCode,
       BranchCode,
       AttendenceYear: Year,
       AttendenceMonth: Month,
+      newCompanyCode: newCompanyCode
     },
   });
 
@@ -60,9 +24,10 @@ const createFormattedCode = async ({ CompanyCode, BranchCode, Head, Year, Month 
     return existingRecord.AttendenceCode;
   }
 
+  const SequenceMaster1 = sequelize.models.SequenceMaster1;
   // Step 2: Get sequence config from SequenceMaster1
   let record = await SequenceMaster1.findOne({
-    where: { CompanyCode, BranchCode, Head },
+    where: { CompanyCode, BranchCode, Head, newCompanyCode },
   });
 
   // ✅ If "All Branch" requested but no record exists, create it automatically
@@ -107,24 +72,26 @@ const createFormattedCode = async ({ CompanyCode, BranchCode, Head, Year, Month 
   // Step 4: Update sequence so next time it stays unique
   await SequenceMaster1.update(
     { LastValue: lastvalue + record.Increment },
-    { where: { CompanyCode, BranchCode, Head } }
+    { where: { CompanyCode, BranchCode, Head, newCompanyCode } }
   );
 
   return code;
 };
 
-const getFormattedCode = async ({ CompanyCode, BranchCode, Head}) => {
- 
-  const record = await SequenceMaster1.findOne({
-    where: { CompanyCode, BranchCode, Head:Head },
-  });
+const getFormattedCode = async ({ newCompanyCode, CompanyCode, BranchCode, Head }) => {
+  const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+  if (!companyDetails || companyDetails.length === 0) {
+    throw new CustomError(404, "Company not found");
+  }
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
 
-   console.log("record", record)
-    
+  const SequenceMaster1 = sequelize.models.SequenceMaster1;
+
+  const record = await SequenceMaster1.findOne({ where: { CompanyCode, BranchCode, Head, newCompanyCode } });
+
   if (!record) {
     throw new Error("Prefix configuration not found for given parameters");
   }
-  // Step 3: Format code using prefix + padded increment + financial year
   const lastvalue = record.LastValue
   const paddedValue = lastvalue.toString().padStart(5, "0");
   const now = new Date();
@@ -133,32 +100,36 @@ const getFormattedCode = async ({ CompanyCode, BranchCode, Head}) => {
   const financialYear = `${fyStart.toString().slice(-2)}-${fyEnd.toString().slice(-2)}`;
 
   const code = `${record.CompanyPrefix}/${record.BranchPrefix}/${record.Prefix}/${paddedValue}/${financialYear}`;
-    await SequenceMaster1.update(
+  await SequenceMaster1.update(
     { LastValue: lastvalue + record.Increment },
     { where: { CompanyCode, BranchCode, Head: Head } }
   );
   return code;
 };
 
-const getAttendanceCodeRepo = async ({ CompanyCode, BranchCode, Year, Month }) => {
- 
-   // Step 1: Check if AttendanceMaster already has a code for this branch, year, and month
-    const existingRecord = await AttendanceMaster.findOne({
-      where: {
-        CompanyCode,
-        BranchCode,
-        AttendenceYear: Year,
-        AttendenceMonth: Month,
-      },
-    });
+const getAttendanceCodeRepo = async ({ newCompanyCode, CompanyCode, BranchCode, Year, Month }) => {
 
-    if (existingRecord?.AttendenceCode) {
-      return existingRecord.AttendenceCode;
-    }
+  const companyDetails = await getDatabaseNameByCompanyCode(newCompanyCode);
+  if (!companyDetails || companyDetails.length === 0) {
+    throw new CustomError(404, "Company not found");
+  }
+  const sequelize = await getSequelize(companyDetails[0].CompanyDatabaseName);
+  const AttendanceMaster = sequelize.models.AttendenceMaster;
+  const existingRecord = await AttendanceMaster.findOne({
+    where: {
+      CompanyCode,
+      BranchCode,
+      AttendenceYear: Year,
+      AttendenceMonth: Month,
+    },
+  });
+  if (existingRecord?.AttendenceCode) {
+    return existingRecord.AttendenceCode;
+  }
 
-    throw new Error(`Attendance code not found for ${CompanyCode}/${BranchCode} - ${Month}/${Year}`);
-     
+  throw new Error(`Attendance code not found for ${CompanyCode}/${BranchCode} - ${Month}/${Year}`);
+
 }
 
 
-module.exports = {createFormattedCode, getFormattedCode, getAttendanceCodeRepo };
+module.exports = { createFormattedCode, getFormattedCode, getAttendanceCodeRepo };

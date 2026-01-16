@@ -16,6 +16,8 @@ const salarySlipModel = require("./../models/salarySlip.model");
 const salarySlipEmployeeModel = require("./../models/salarySlipEmployee.model");
 const salarySlipEntitlementDetailsModel = require("./../models/SalarySlipEntitlementDetails.model");
 const MonthlyEntitlementEntry = require("./../models/monthlyEntitlementEntry.model");
+const AttendenceMasterModel = require("../models/attendenceMaster.model");
+const SequenceMaster1 = require("../models/sequenceMaster1.model");
 
 module.exports = (sequelize, DataTypes) => {
   EmployeeModel(sequelize, DataTypes);
@@ -36,4 +38,6 @@ module.exports = (sequelize, DataTypes) => {
   salarySlipEmployeeModel(sequelize, DataTypes);
   salarySlipEntitlementDetailsModel(sequelize, DataTypes);
   MonthlyEntitlementEntry(sequelize, DataTypes);
+  AttendenceMasterModel(sequelize, DataTypes);
+  SequenceMaster1(sequelize, DataTypes);
 };
